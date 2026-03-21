@@ -1,8 +1,11 @@
 CollapsedEntities:
   type: stringset
   value:
-    size: 2
+    size: 5
     values:
+      - Device Camera Texture.deviceCameraTexture
+      - Render Target.renderTarget
+      - Scene.scene
       - Untitled TypeScript.ts
       - VoiceML Module.voiceMLModule
   options: 4
