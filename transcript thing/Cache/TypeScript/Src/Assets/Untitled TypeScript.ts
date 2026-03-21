@@ -5,7 +5,7 @@ export class TranscriptionComponent extends BaseScriptComponent {
     @input transcriptText: Text;
 
     onAwake() {
-        const options = VoiceML.ListeningOptions.create();
+        print("Script started on Spectacles!");
 
         this.vmlModule.onListeningUpdate.add((eventArgs) => {
             const transcript = eventArgs.transcription;
@@ -18,6 +18,13 @@ export class TranscriptionComponent extends BaseScriptComponent {
             print('Error: ' + eventErrorArgs.error + ' desc: ' + eventErrorArgs.description);
         });
 
-        this.vmlModule.startListening(options);
+        // Delay startListening to let Spectacles fully initialize
+        const delayEvent = this.createEvent("DelayedCallbackEvent");
+        delayEvent.bind(() => {
+            print("Starting listening...");
+            const options = VoiceML.ListeningOptions.create();
+            this.vmlModule.startListening(options);
+        });
+        delayEvent.reset(1.0); // 1 second delay
     }
 }

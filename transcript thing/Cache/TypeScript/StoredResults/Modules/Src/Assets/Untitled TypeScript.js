@@ -68,7 +68,7 @@ let TranscriptionComponent = (() => {
             this.transcriptText = this.transcriptText;
         }
         onAwake() {
-            const options = VoiceML.ListeningOptions.create();
+            print("Script started on Spectacles!");
             this.vmlModule.onListeningUpdate.add((eventArgs) => {
                 const transcript = eventArgs.transcription;
                 if (transcript && transcript.length > 0) {
@@ -78,7 +78,14 @@ let TranscriptionComponent = (() => {
             this.vmlModule.onListeningError.add((eventErrorArgs) => {
                 print('Error: ' + eventErrorArgs.error + ' desc: ' + eventErrorArgs.description);
             });
-            this.vmlModule.startListening(options);
+            // Delay startListening to let Spectacles fully initialize
+            const delayEvent = this.createEvent("DelayedCallbackEvent");
+            delayEvent.bind(() => {
+                print("Starting listening...");
+                const options = VoiceML.ListeningOptions.create();
+                this.vmlModule.startListening(options);
+            });
+            delayEvent.reset(1.0); // 1 second delay
         }
     };
     __setFunctionName(_classThis, "TranscriptionComponent");

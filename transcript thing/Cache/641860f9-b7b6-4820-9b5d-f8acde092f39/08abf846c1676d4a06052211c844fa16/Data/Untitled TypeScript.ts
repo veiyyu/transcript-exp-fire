@@ -1,10 +1,12 @@
 @component
 export class TranscriptionComponent extends BaseScriptComponent {
 
-    @input vmlModule: VoiceML.VoiceMLModule;
+    @input('Component.VoiceMLModule') vmlModule: any;
     @input transcriptText: Text;
 
     onAwake() {
+        print("Script started on Spectacles!");
+        
         const options = VoiceML.ListeningOptions.create();
 
         this.vmlModule.onListeningUpdate.add((eventArgs) => {
