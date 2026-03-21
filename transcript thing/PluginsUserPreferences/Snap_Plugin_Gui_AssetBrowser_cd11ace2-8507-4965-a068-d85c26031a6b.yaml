@@ -1,8 +1,10 @@
 CollapsedEntities:
   type: stringset
   value:
-    size: 2
+    size: 4
     values:
+      - Internet Module.internetModule
+      - Remote Service Module.remoteServiceModule
       - Untitled TypeScript.ts
       - VoiceML Module.voiceMLModule
   options: 4

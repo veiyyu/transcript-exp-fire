@@ -334,7 +334,7 @@
     []
   Name: Untitled TypeScript
   Enabled: true
-  ScriptAsset: !<reference> 8b0685c7-56a5-4e73-af98-bed75bfcc2b7
+  ScriptAsset: !<reference> a7d51e7b-4d47-44bb-8dc5-1d1241dd3680
   ScriptInputsDefault:
     {}
   ScriptTypesDefault:
@@ -343,6 +343,7 @@
     "":
       vmlModule: !<reference.VoiceMLModule> 2403e529-74ed-4e08-b8f0-82701212ae2b
       transcriptText: !<reference.Text> 5ffa9182-53e2-48b5-b11d-551cf31987c6
+      internetModule: !<reference.InternetModule> 7ccb4efe-36ec-4ead-bfc8-82d9ea947fc8
   ScriptTypes:
     "":
       {}
