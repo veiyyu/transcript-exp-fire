@@ -18,11 +18,7 @@
       padding: 24px;
     }
     h1 { font-size: 1.4rem; margin-bottom: 24px; opacity: 0.7; }
-    #status {
-      font-size: 1rem;
-      margin-bottom: 16px;
-      color: #888;
-    }
+    #status { font-size: 1rem; margin-bottom: 16px; color: #888; }
     #micBtn {
       width: 100px;
       height: 100px;
@@ -55,8 +51,7 @@
   <button id="micBtn">🎤</button>
   <div id="transcript">Your speech will appear here...</div>
   <script>
-    const SUPABASE_URL = 'https://akfpmfnnmhoatqslpvqt.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZnBtZm5ubWhvYXRxc2xwdnF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjQyMjQsImV4cCI6MjA4OTcwMDIyNH0.mS4BgmmGY0YQzN7WNqaEw4PofElpcvDzpi8uqleFxTM';
+    const FIREBASE_URL = 'https://transcript-exp-default-rtdb.firebaseio.com/transcript.json';
 
     const btn = document.getElementById('micBtn');
     const statusEl = document.getElementById('status');
@@ -65,22 +60,29 @@
     let recognition;
     let listening = false;
     let fullText = '';
+    let isSaving = false;
+    let pendingText = null;
 
-    let saveTimeout = null;
-
-    async function saveToSupabase(text) {
-      if (saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(async () => {
-        await fetch(`${SUPABASE_URL}/rest/v1/transcript?id=eq.1`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-          },
+    async function saveToFirebase(text) {
+      if (isSaving) {
+        pendingText = text;
+        return;
+      }
+      isSaving = true;
+      try {
+        await fetch(FIREBASE_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text })
         });
-      }, 150);
+      } finally {
+        isSaving = false;
+        if (pendingText !== null) {
+          const next = pendingText;
+          pendingText = null;
+          saveToFirebase(next);
+        }
+      }
     }
 
     function startRecognition() {
@@ -96,46 +98,4 @@
 
       recognition.onresult = (event) => {
         let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const t = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            fullText += t + ' ';
-          } else {
-            interim = t;
-          }
-        }
-        const displayText = fullText + interim;
-        transcriptEl.textContent = displayText;
-        saveToSupabase(displayText.trim());
-      };
-
-      recognition.onerror = (e) => {
-        statusEl.textContent = '❌ Error: ' + e.error;
-      };
-
-      recognition.onend = () => {
-        if (listening) recognition.start();
-      };
-
-      recognition.start();
-    }
-
-    btn.addEventListener('click', () => {
-      if (!listening) {
-        listening = true;
-        btn.classList.add('listening');
-        btn.textContent = '⏹';
-        statusEl.textContent = '🟢 Listening...';
-        startRecognition();
-      } else {
-        listening = false;
-        btn.classList.remove('listening');
-        btn.textContent = '🎤';
-        statusEl.textContent = 'Tap to start';
-        if (recognition) recognition.stop();
-        fullText = '';
-      }
-    });
-  </script>
-</body>
-</html>
+        for (let i = event.resultIndex; i < eve
