@@ -59,13 +59,13 @@
 
     let recognition;
     let listening = false;
-    let fullText = '';
+    let finalText = '';
     let isSaving = false;
-    let pendingText = null;
+    let pendingSave = null;
 
-    async function saveToFirebase(text) {
+    async function saveToFirebase(payload) {
       if (isSaving) {
-        pendingText = text;
+        pendingSave = payload;
         return;
       }
       isSaving = true;
@@ -73,13 +73,13 @@
         await fetch(FIREBASE_URL, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
+          body: JSON.stringify(payload)
         });
       } finally {
         isSaving = false;
-        if (pendingText !== null) {
-          const next = pendingText;
-          pendingText = null;
+        if (pendingSave !== null) {
+          const next = pendingSave;
+          pendingSave = null;
           saveToFirebase(next);
         }
       }
@@ -101,14 +101,21 @@
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const t = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            fullText += t + ' ';
+            finalText += t + ' ';
           } else {
             interim = t;
           }
         }
-        const displayText = fullText + interim;
+
+        const displayText = finalText + interim;
         transcriptEl.textContent = displayText;
-        saveToFirebase(displayText.trim());
+
+        // Send both final and interim separately so Spectacles knows the difference
+        saveToFirebase({
+          final: finalText.trim(),
+          interim: interim.trim(),
+          timestamp: Date.now()
+        });
       };
 
       recognition.onerror = (e) => {
@@ -135,7 +142,8 @@
         btn.textContent = '🎤';
         statusEl.textContent = 'Tap to start';
         if (recognition) recognition.stop();
-        fullText = '';
+        finalText = '';
+        saveToFirebase({ final: '', interim: '', timestamp: Date.now() });
       }
     });
   </script>
