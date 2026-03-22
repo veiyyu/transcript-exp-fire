@@ -59,7 +59,6 @@
 
     let recognition;
     let listening = false;
-    let finalText = '';
     let isSaving = false;
     let pendingSave = null;
 
@@ -98,24 +97,34 @@
 
       recognition.onresult = (event) => {
         let interim = '';
+        let newFinal = '';
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const t = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalText += t + ' ';
+            newFinal = t.trim();
           } else {
-            interim = t;
+            interim = t.trim();
           }
         }
 
-        const displayText = finalText + interim;
-        transcriptEl.textContent = displayText;
-
-        // Send both final and interim separately so Spectacles knows the difference
-        saveToFirebase({
-          final: finalText.trim(),
-          interim: interim.trim(),
-          timestamp: Date.now()
-        });
+        if (newFinal) {
+          // A sentence just finished — send it as final, reset interim
+          transcriptEl.textContent = newFinal;
+          saveToFirebase({
+            final: newFinal,
+            interim: '',
+            timestamp: Date.now()
+          });
+        } else {
+          // Still speaking — send interim only
+          transcriptEl.textContent = interim;
+          saveToFirebase({
+            final: '',
+            interim: interim,
+            timestamp: Date.now()
+          });
+        }
       };
 
       recognition.onerror = (e) => {
@@ -142,7 +151,6 @@
         btn.textContent = '🎤';
         statusEl.textContent = 'Tap to start';
         if (recognition) recognition.stop();
-        finalText = '';
         saveToFirebase({ final: '', interim: '', timestamp: Date.now() });
       }
     });
